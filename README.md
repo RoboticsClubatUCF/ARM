@@ -1,3 +1,3 @@
 # Kinematic_hell
 
-welcoome to hell
+welcome to hell
