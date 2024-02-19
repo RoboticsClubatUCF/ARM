@@ -1,0 +1,53 @@
+/*
+ Name:        step_drive.ino
+ 
+ Author:    mertwhocodes
+/
+#include<mwc_stepper.h>
+
+#define EN_PIN 42
+#define DIR_PIN 2
+#define STEP_PIN 1
+
+#define RPM 100
+#define RPM1 50
+
+#define PULSE 400
+
+#define ClOCKWISE 1
+#define OTHERWISE 0
+
+MWCSTEPPER nema23(EN_PIN, DIR_PIN, STEP_PIN);
+
+int flipSwitch(int toggle);
+
+void setup() {
+
+    Serial.begin(9600);
+    nema23.init();
+
+}
+
+void loop() 
+{
+    int toggle = 0;
+    nema23.set(ClOCKWISE, RPM, PULSE);
+    while(flipSwitch(&toggle))
+    {
+      nema23.run();
+    }
+}
+
+int flipSwitch(int * toggle)
+{
+  //use return key to toggle on/off
+  if(Serial.read() != -1)
+  {
+    toggle = !(toggle);
+    if(toggle)
+      Serial.println("Motor on");
+    else
+      Serial.println("Motor off");
+  }
+  returntoggle;
+}
