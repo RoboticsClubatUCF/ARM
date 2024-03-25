@@ -14,3 +14,6 @@ https://www.airspayce.com/mikem/arduino/AccelStepper/
 encoder controls 
 https://www.pjrc.com/teensy/td_libs_Encoder.html
 
+Tutorials followed 
+Multithreading 
+https://randomnerdtutorials.com/esp32-dual-core-arduino-ide/
