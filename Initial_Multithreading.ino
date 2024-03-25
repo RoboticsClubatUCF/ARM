@@ -1,84 +1,95 @@
 #include <AccelStepper.h>
 #include <Encoder.h>
 
+//stepper pins
 #define DIR_PIN 5
 #define STEP_PIN 6
 
-#define inputA 2
-#define inputB 3
+//encoder pins
+#define INPUT_A 2
+#define INPUT_B 3
 
-TaskHandle_t Task1;
-TaskHandle_t Task2;
+TaskHandle_t encoderTask;
+TaskHandle_t motorTask;
 long curState;
 long prevState;
 bool toggle = 0;
 
-AccelStepper stepper(AccelStepper:: DRIVER, STEP_PIN, DIR_PIN)
-Encoder myEncoder(inputA, inputB);
+AccelStepper stepper(AccelStepper:: DRIVER, STEP_PIN, DIR_PIN);
+Encoder myEncoder(INPUT_A, INPUT_B);
 
-void setup() {
-  stepper.setMaxSpeed(200);
-  stepper.setSpeed(100);
+void setup() 
+{
+  stepper.setMaxSpeed(800);
+  stepper.setSpeed(200);
 
-  pinMode(inputA, INPUT);
-  pinMode(inputB, INPUT);
+  pinMode(INPUT_A, INPUT);
+  pinMode(INPUT_B, INPUT);
 
   Serial.begin(115200);
 
   prevState = myEncoder.read();
 
   xTaskCreatePinnedToCore(
-    Task1code,
-    "Task1",
-    10000,
-    NULL,
-    1,
-    &Task1,
-    0);
+    readEncoder, //function to implement
+    "encoderTask", //name of task
+    1000, //stack size
+    NULL, //task parameter
+    1, //priority (higher number = higher priority)
+    &encoderTask, //address of task
+    0); //core task should run on
   delay(500);
 
   xTaskCreatePinnedToCore(
-    Task2code,
-    "Task2",
-    10000,
-    NULL,
-    1,
-    &Task2,
-    1);
+    runMotor, //function to implement
+    "motorTask", //name of task
+    1000, //stack size
+    NULL, //task parameter
+    1, //priority
+    &motorTask, //address of task
+    1); //core task should run on
   delay(500);
 }
 
-void Task1code(void * pvParameters) {
-  Serial.print("Task1 running on core ");
+void readEncoder(void * pvParameters) 
+{
+  Serial.print("encoderTask running on core ");
   Serial.println(xPortGetCoreID());
 
-  for(;;) {
+  for(;;) 
+  {
     curState = myEncoder.read();
-    if(curState != prevState) {
-      Serial.println(curState);
+    if(curState != prevState) 
+    {
+      Serial.println(curState / 4); //encoder counts 4x per pulse
       prevState = curState;
     }
   }
 }
 
-void Task2code(void * pvParameters) {
-  Serial.print("Task2 running on core ");
+void runMotor(void * pvParameters) 
+{
+  Serial.print("motorTask running on core ");
   Serial.println(xPortGetCoreID());
 
-  for(;;) {
-    if(Serial.read() != -1) {
-    toggle = !toggle;
+  for(;;) 
+  { 
+    //use enter key to toggle
+    if(Serial.read() != -1) 
+    {
+      toggle = !toggle;
+      if(toggle)
+        Serial.println("Motor running");
+      else
+        Serial.println("Motor stopped");
+    }
+
     if(toggle)
-      Serial.println("Motor running");
-    else
-      Serial.println("Motor stopped");
-    }
-    if(toggle) {
       stepper.runSpeed();
-    }
   }
 }
 
-void loop(){
-  
+void loop()
+{
+
 }
