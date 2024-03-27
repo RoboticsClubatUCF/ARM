@@ -1,16 +1,17 @@
 #include <AccelStepper.h>
 #include <Encoder.h>
 
+
 //stepper pins
+#define en_PIN 17
 #define DIR_PIN 5
 #define STEP_PIN 6
 
 //encoder pins
-#define INPUT_A 2
-#define INPUT_B 3
+#define INPUT_A 15
+#define INPUT_B 7
 
 TaskHandle_t encoderTask;
-TaskHandle_t motorTask;
 long curState;
 long prevState;
 bool toggle = 0;
@@ -22,6 +23,8 @@ void setup()
 {
   stepper.setMaxSpeed(800);
   stepper.setSpeed(200);
+stepper.setEnablePin(en_PIN);
+
 
   pinMode(INPUT_A, INPUT);
   pinMode(INPUT_B, INPUT);
@@ -33,31 +36,22 @@ void setup()
   xTaskCreatePinnedToCore(
     readEncoder, //function to implement
     "encoderTask", //name of task
-    1000, //stack size
+    10000, //stack size
     NULL, //task parameter
     1, //priority (higher number = higher priority)
     &encoderTask, //address of task
     0); //core task should run on
   delay(500);
-
-  xTaskCreatePinnedToCore(
-    runMotor, //function to implement
-    "motorTask", //name of task
-    1000, //stack size
-    NULL, //task parameter
-    1, //priority
-    &motorTask, //address of task
-    1); //core task should run on
-  delay(500);
 }
 
 void readEncoder(void * pvParameters) 
 {
-  Serial.print("encoderTask running on core ");
-  Serial.println(xPortGetCoreID());
 
   for(;;) 
   {
+      Serial.print("encoderTask running on core ");
+  Serial.println(xPortGetCoreID());
+
     curState = myEncoder.read();
     if(curState != prevState) 
     {
@@ -67,29 +61,20 @@ void readEncoder(void * pvParameters)
   }
 }
 
-void runMotor(void * pvParameters) 
-{
-  Serial.print("motorTask running on core ");
-  Serial.println(xPortGetCoreID());
-
-  for(;;) 
-  { 
-    //use enter key to toggle
-    if(Serial.read() != -1) 
-    {
-      toggle = !toggle;
-      if(toggle)
-        Serial.println("Motor running");
-      else
-        Serial.println("Motor stopped");
-    }
-
-    if(toggle)
-      stepper.runSpeed();
-  }
-}
-
 void loop()
 {
+    Serial.print("motortask running on core ");
+  Serial.println(xPortGetCoreID());
+  //use enter key to toggle
+  if(Serial.read() != -1) 
+  {
+    toggle = !toggle;
+    if(toggle)
+      Serial.println("Motor running");
+    else
+      Serial.println("Motor stopped");
+  }
 
+  if(toggle)
+    stepper.runSpeed();
 }
