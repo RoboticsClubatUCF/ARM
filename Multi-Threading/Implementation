@@ -1,1 +1,12 @@
 
+
+Multithreading 
+
+Watchdog information
+The watchdog is a kernel level safety mechanism built into the esp32 so ensure that the esp32 has not crashed. 
+We know that the esp32 has a watchdog that has some time restriction before it hard resets the esp32, something around 300ms.
+This only resets when that happens AND both cores are used because the watchdog is also looking for an IDLE command being called on 1 of 2 cores. 
+
+
+
+Core
